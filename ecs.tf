@@ -11,7 +11,7 @@ module "ecs_service" {
   requiresCompatibilities    = local.requiresCompatibilities
   launch_type                = local.launch_type
 
-  execution_role_arn = module.ecs_task_execution_role.arn # "arn:aws:iam::${local.account_id}:role/ecsTaskExecutionRole"
+  execution_role_arn = module.execution_role.arn
   task_role_arn      = module.task_role.arn
 
   app_port                   = local.app_port

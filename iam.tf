@@ -1,13 +1,71 @@
-# data.aws_iam_policy_document.ssm_access
-  # Permissions to fetch secrets from parameter store goes here
+data "aws_iam_policy_document" "execution_role" {
+  # Access SSM Parameters
+  statement {
+    actions   = ["ssm:GetParameters"]
+    resources = ["arn:aws:ssm:*:*:parameter/${local.ssm_prefix}/*"]
+  }
 
-# module.ecs_task_execution_role.arn
-  # role for the ECS agent, to manage and run the container
-  # ECR and CloudWatch permissions goes here
+  # Logging Permissions
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogStreams"
+    ]
+    resources = [
+      "arn:aws:logs:*:*:*"
+    ]
+  }
+}
 
-# module.task_role
-  # role for the app running inside the container.
-  # ssm inline policy goes here
-  # other needed permissions for atlantis (s3, lambda, sqs, apigateway...)
+module "execution_role" {
+  source = "git@github.com:uturndata/rocketry_aws_iam_role.git?ref=v2.2.1"
 
-# Check examples/advances_fargate under rocketry_aws_ecs_service
+  name                 = "${var.service_name}-TaskExecutionRole"
+  path                 = "/ecs/"
+  description          = "Access for ECS Agent to call AWS services"
+  assume_role_services = ["ecs-tasks.amazonaws.com"]
+
+  policy_arns = {
+    AmazonECSTaskExecutionRolePolicy = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  }
+
+  inline_policies = {
+    ExecutionRole = data.aws_iam_policy_document.execution_role.json
+  }
+}
+
+data "aws_iam_policy_document" "ecs-exec" {
+  statement {
+    actions = [
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel",
+      "logs:DescribeLogGroups",
+    ]
+    resources = ["*"]
+  }
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:DescribeLogStreams",
+      "logs:PutLogEvents"
+    ]
+    resources = ["arn:aws:logs:*:*:log-group:/ecs/*:*"]
+  }
+}
+
+module "task_role" {
+  source = "git@github.com:uturndata/rocketry_aws_iam_role.git?ref=v2.2.1"
+
+  name                 = "${var.service_name}-TaskRole"
+  path                 = "/ecs/"
+  description          = "Access for ${var.service_name} ECS service tasks"
+  assume_role_services = ["ecs-tasks.amazonaws.com"]
+
+  inline_policies = {
+    ECS-Exec = data.aws_iam_policy_document.ecs-exec.json
+  }
+}

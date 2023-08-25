@@ -1,6 +1,15 @@
-# data.terraform_remote_state.network
-# outputs["subnet_ids"]
-# outputs["subnet_cidrs"]
-# outputs["vpc_id"]
+data "aws_vpc" "default" {
+  default = true
+}
 
-# Check examples/advances_fargate under rocketry_aws_ecs_service for default vpc
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+
+  filter {
+    name   = "default-for-az"
+    values = [true]
+  }
+}

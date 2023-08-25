@@ -6,11 +6,8 @@ locals {
   account_id = "118504845376"
 
 
-  subnet_ids = {
-    app = ["subnet-0b18541ddd62ec67b", "subnet-0dd02dc08dc471e76", "subnet-07bbe235557afe097"]
-  }                                                                    # data.terraform_remote_state.network.outputs["subnet_ids"]
-  subnet_cidrs = ["172.31.0.0/20", "172.31.16.0/20", "172.31.32.0/20"] # data.terraform_remote_state.network.outputs["subnet_cidrs"]
-  vpc_id       = "vpc-0c17cc69b5f4ffb5a"                               # data.terraform_remote_state.network.outputs["vpc_id"]
+  subnet_ids = coalesce(var.subnet_ids, data.aws_subnets.default.ids)
+  vpc_id     = coalesce(var.vpc_id, data.aws_vpc.default.id)
 
   default_tags = {
     Application = "Atlantis"
@@ -58,15 +55,18 @@ locals {
     # ATLANTIS_GH_APP_KEY_FILE               = "PLACEHOLDER" # Using ATLANTIS_GH_APP_KEY
   }
 
-  map_secrets = {
-    ATLANTIS_GH_TOKEN          = "/atlantis/github/token"
-    ATLANTIS_GH_WEBHOOK_SECRET = "/atlantis/github/webhook_secret" # See https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks
-    ATLANTIS_GH_APP_KEY        = "/atlantis/github/app_key"
-    ATLANTIS_WEB_PASSWORD      = "/atlantis/web/password"
-  }
+  map_secrets = { for k, v in {
+    ATLANTIS_GH_TOKEN          = "/github/token"
+    ATLANTIS_GH_WEBHOOK_SECRET = "/github/webhook_secret" # See https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks
+    ATLANTIS_GH_APP_KEY        = "/github/app_key"
+    ATLANTIS_WEB_PASSWORD      = "/web/password"
+  } : k => "${local.ssm_prefix}${v}" }
+
+  # Environments and Secrets
+  ssm_prefix = "/ecs/${var.cluster_name}/${var.service_name}"
 
   # ECS Service Configuration
-  service_name = "atlantis"
+  service_name = var.service_name
 
   container_name      = local.service_name
   container_image_url = "ghcr.io/runatlantis/atlantis:${local.atlantis_version}"
@@ -77,7 +77,7 @@ locals {
   app_port      = 4141
   host_volumes  = []
 
-  cluster_name               = "main-${local.account}"
+  cluster_name               = var.cluster_name
   force_new_deployment       = true
   capacity_provider_strategy = []
   ordered_placement_strategy = []
@@ -109,7 +109,4 @@ locals {
   target_group_arns = [module.alb_listener_target.target_group_arn]
   listener_arn      = module.public_loadbalancer.listener_arns["443"]
   certificate_arn   = "PLACEHOLDER" # "arn:aws:acm:<region>:<account-id>:certificate/<cert-id>"
-
-  # Environments and Secrets
-  ssm_prefix = "/${local.service_name}"
 }
