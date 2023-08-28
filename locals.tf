@@ -1,11 +1,4 @@
 locals {
-  account      = "uturn-rocketry"
-  region       = "us-east-2"
-  region_short = join("", regex("(\\w\\w)-(\\w)\\w+-(\\d)", local.region))
-
-  account_id = "118504845376"
-
-
   subnet_ids = coalesce(var.subnet_ids, data.aws_subnets.default.ids)
   vpc_id     = coalesce(var.vpc_id, data.aws_vpc.default.id)
 
@@ -21,8 +14,8 @@ locals {
 
   map_environment = {
     # Required
-    ATLANTIS_ATLANTIS_URL     = "PLACEHOLDER" # "https://atlantis.dev.example.com"
-    ATLANTIS_REPO_ALLOWLIST   = join(",", ["github.com/uturndata/rocketry_*"])
+    ATLANTIS_ATLANTIS_URL     = "https://${var.atlantis_host_name}"
+    ATLANTIS_REPO_ALLOWLIST   = join(",", var.atlantis_repo_whitelist)
     DEFAULT_TERRAFORM_VERSION = "1.3.9"
 
     # Optional Config
@@ -45,14 +38,12 @@ locals {
     ATLANTIS_EMOJI_REACTION = "trident"
 
     # GitHub Config
-    ATLANTIS_GH_USER                         = "PLACEHOLDER"
-    ATLANTIS_GH_ORG                          = "uturndata"
-    ATLANTIS_GH_APP_ID                       = "PLACEHOLDER"
-    ATLANTIS_GH_APP_SLUG                     = "atlantis-app"
+    ATLANTIS_GH_USER                         = var.atlantis_gh_user
+    ATLANTIS_GH_APP_ID                       = var.atlantis_gh_authentication_app_installation.atlantis_gh_app_id
+    ATLANTIS_GH_APP_SLUG                     = var.atlantis_gh_app_slug
     ATLANTIS_GH_ALLOW_MERGEABLE_BYPASS_APPLY = false
-    # ATLANTIS_GH_HOSTNAME                   = "my.github.enterprise.com" # GitHub Enterprise only
-    # ATLANTIS_GH_TEAM_ALLOWLIST             = "myteam:plan, secteam:apply, DevOps Team:apply, DevOps Team:import"
-    # ATLANTIS_GH_APP_KEY_FILE               = "PLACEHOLDER" # Using ATLANTIS_GH_APP_KEY
+    ATLANTIS_GH_HOSTNAME                     = var.atlantis_gh_hostname
+    ATLANTIS_GH_TEAM_ALLOWLIST               = var.atlantis_gh_team_allowlist
   }
 
   map_secrets = { for k, v in {
@@ -105,8 +96,8 @@ locals {
   allowed_security_group_ids = [module.public_loadbalancer.security_group_id]
 
   # ALB Pattern
-  host_names        = ["PLACEHOLDER"] # ["atlantis.dev.example.com"]
+  host_names        = [var.atlantis_host_name]
   target_group_arns = [module.alb_listener_target.target_group_arn]
   listener_arn      = module.public_loadbalancer.listener_arns["443"]
-  certificate_arn   = "PLACEHOLDER" # "arn:aws:acm:<region>:<account-id>:certificate/<cert-id>"
+  certificate_arn   = var.certificate_arn
 }

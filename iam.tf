@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "execution_role" {
 }
 
 module "execution_role" {
-  source = "git@github.com:uturndata/rocketry_aws_iam_role.git?ref=v2.2.1"
+  source = "git@github.com:uturndata/rocketry_aws_iam_role.git?ref=main"
 
   name                 = "${var.service_name}-TaskExecutionRole"
   path                 = "/ecs/"
@@ -36,7 +36,7 @@ module "execution_role" {
   }
 }
 
-data "aws_iam_policy_document" "ecs-exec" {
+data "aws_iam_policy_document" "ssm_access" {
   statement {
     actions = [
       "ssmmessages:CreateControlChannel",
@@ -58,14 +58,12 @@ data "aws_iam_policy_document" "ecs-exec" {
 }
 
 module "task_role" {
-  source = "git@github.com:uturndata/rocketry_aws_iam_role.git?ref=v2.2.1"
+  source = "git@github.com:uturndata/rocketry_aws_iam_role.git?ref=main"
 
   name                 = "${var.service_name}-TaskRole"
   path                 = "/ecs/"
   description          = "Access for ${var.service_name} ECS service tasks"
   assume_role_services = ["ecs-tasks.amazonaws.com"]
 
-  inline_policies = {
-    ECS-Exec = data.aws_iam_policy_document.ecs-exec.json
-  }
+  inline_policies = local.iam_inline_policies
 }
