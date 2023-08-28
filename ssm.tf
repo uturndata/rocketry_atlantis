@@ -4,7 +4,7 @@ resource "random_password" "web_password" {
 }
 
 resource "aws_ssm_parameter" "web_password" {
-  name  = "${local.ssm_prefix}/web/password"
+  name  = "${local.ssm_prefix}${var.secrets_names_suffixes.web_password}"
   type  = "SecureString"
   value = random_password.web_password.result
 }

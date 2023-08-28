@@ -65,5 +65,7 @@ module "task_role" {
   description          = "Access for ${var.service_name} ECS service tasks"
   assume_role_services = ["ecs-tasks.amazonaws.com"]
 
+  policy_arns = local.policy_arns
+
   inline_policies = local.iam_inline_policies
 }

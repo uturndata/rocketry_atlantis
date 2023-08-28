@@ -1,70 +1,63 @@
 locals {
+  region       = data.aws_region.current.name
+  region_short = join("", regex("(\\w\\w)-(\\w)\\w+-(\\d)", local.region))
+
   subnet_ids = coalesce(var.subnet_ids, data.aws_subnets.default.ids)
   vpc_id     = coalesce(var.vpc_id, data.aws_vpc.default.id)
 
-  default_tags = {
-    Application = "Atlantis"
-    Team        = "Uturn"
-    ManagedBy   = "Terraform"
-    Environment = "development"
-  }
+  default_tags = var.default_tags
 
   # Atlantis Configuration
-  atlantis_version = "v0.25.0"
+  image_url = "${var.image_repo}:${var.image_tag}"
 
   map_environment = {
     # Required
-    ATLANTIS_ATLANTIS_URL     = "https://${var.atlantis_host_name}"
-    ATLANTIS_REPO_ALLOWLIST   = join(",", var.atlantis_repo_whitelist)
-    DEFAULT_TERRAFORM_VERSION = "1.3.9"
+    ATLANTIS_ATLANTIS_URL     = "https://${var.host_name}"
+    ATLANTIS_REPO_ALLOWLIST   = join(",", var.repo_allowlist)
+    DEFAULT_TERRAFORM_VERSION = var.default_terraform_version
 
     # Optional Config
-    ATLANTIS_WEB_BASIC_AUTH = true
-    ATLANTIS_WEB_USERNAME   = "atlantis"
+    ATLANTIS_WEB_BASIC_AUTH = var.enable_web_basic_auth
+    ATLANTIS_WEB_USERNAME   = var.enable_web_basic_auth ? var.web_username : null
 
-    ATLANTIS_REPO_CONFIG_JSON = jsonencode({
-      repos = [{
-        id                 = "/.*/"
-        apply_requirements = ["mergeable"]
-      }]
-    })
+    ATLANTIS_REPO_CONFIG_JSON = jsonencode(var.repo_config_json)
 
-    ATLANTIS_CHECKOUT_STRATEGY       = "merge" # Merge locally before planning
-    ATLANTIS_AUTOMERGE               = true    # After apply, merge down
-    ATLANTIS_AUTOPLAN_MODULES        = true
-    ATLANTIS_HIDE_PREV_PLAN_COMMENTS = true
-    ATLANTIS_WRITE_GIT_CREDS         = true # Allow access to private modules
+    ATLANTIS_CHECKOUT_STRATEGY       = var.checkout_strategy
+    ATLANTIS_AUTOMERGE               = var.automerge
+    ATLANTIS_AUTOPLAN_MODULES        = var.autoplan_modules
+    ATLANTIS_HIDE_PREV_PLAN_COMMENTS = var.hide_prev_plan_comments
+    ATLANTIS_WRITE_GIT_CREDS         = var.write_git_creds
 
-    ATLANTIS_EMOJI_REACTION = "trident"
+    ATLANTIS_EMOJI_REACTION = var.emoji_reaction
 
     # GitHub Config
-    ATLANTIS_GH_USER                         = var.atlantis_gh_user
-    ATLANTIS_GH_APP_ID                       = var.atlantis_gh_authentication_app_installation.atlantis_gh_app_id
-    ATLANTIS_GH_APP_SLUG                     = var.atlantis_gh_app_slug
-    ATLANTIS_GH_ALLOW_MERGEABLE_BYPASS_APPLY = false
-    ATLANTIS_GH_HOSTNAME                     = var.atlantis_gh_hostname
-    ATLANTIS_GH_TEAM_ALLOWLIST               = var.atlantis_gh_team_allowlist
+    ATLANTIS_GH_USER                         = var.gh_user
+    ATLANTIS_GH_APP_ID                       = var.gh_auth_app_installation.enabled ? var.gh_auth_app_installation.atlantis_gh_app_id : null
+    ATLANTIS_GH_APP_SLUG                     = var.gh_app_slug
+    ATLANTIS_GH_ALLOW_MERGEABLE_BYPASS_APPLY = var.gh_allow_mergeable_bypass_apply
+    ATLANTIS_GH_HOSTNAME                     = var.gh_hostname
+    ATLANTIS_GH_TEAM_ALLOWLIST               = var.gh_team_allowlist
   }
 
-  map_secrets = { for k, v in {
-    ATLANTIS_GH_TOKEN          = "/github/token"
-    ATLANTIS_GH_WEBHOOK_SECRET = "/github/webhook_secret" # See https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks
-    ATLANTIS_GH_APP_KEY        = "/github/app_key"
-    ATLANTIS_WEB_PASSWORD      = "/web/password"
-  } : k => "${local.ssm_prefix}${v}" }
+  map_secrets = {
+    ATLANTIS_GH_TOKEN          = "${local.ssm_prefix}${var.secrets_names_suffixes.gh_token}"
+    ATLANTIS_GH_WEBHOOK_SECRET = "${local.ssm_prefix}${var.secrets_names_suffixes.gh_webhook_secret}"
+    ATLANTIS_GH_APP_KEY        = var.gh_auth_app_installation.enabled ? "${local.ssm_prefix}${var.gh_auth_app_installation.gh_app_key_ssm_suffix}" : null
+    ATLANTIS_WEB_PASSWORD      = var.enable_web_basic_auth ? "${local.ssm_prefix}${var.secrets_names_suffixes.web_password}" : null
+  }
 
   # Environments and Secrets
-  ssm_prefix = "/ecs/${var.cluster_name}/${var.service_name}"
+  ssm_prefix = coalesce(var.ssm_prefix, "/ecs/${var.cluster_name}/${var.service_name}")
 
   # ECS Service Configuration
   service_name = var.service_name
 
   container_name      = local.service_name
-  container_image_url = "ghcr.io/runatlantis/atlantis:${local.atlantis_version}"
+  container_image_url = local.image_url
 
-  cpu           = 512
-  memory        = 1024
-  desired_count = 1
+  cpu           = var.cpu
+  memory        = var.memory
+  desired_count = var.desired_count
   app_port      = 4141
   host_volumes  = []
 
@@ -73,21 +66,19 @@ locals {
   capacity_provider_strategy = []
   ordered_placement_strategy = []
 
-  policy_arns = { # A map of IAM policy arns
-    AdministratorAccess = "arn:aws:iam::aws:policy/AdministratorAccess"
-  }
+  policy_arns = var.policy_arns
 
-  iam_inline_policies = { # A map of IAM inline policies
+  iam_inline_policies = { # A map of IAM inline policies to add on ECS service task role
     ssm-access = data.aws_iam_policy_document.ssm_access.json
   }
 
   # Launch Type Configuration
-  use_fargate = true
+  use_fargate = var.use_fargate
   # Automatically calculated based on the above
   launch_type             = local.use_fargate && length(local.capacity_provider_strategy) == 0 ? "FARGATE" : null
   requiresCompatibilities = local.use_fargate ? ["FARGATE"] : ["EC2"]
 
-  # CloudWatch Logs
+  # CloudWatch Logs (TODO)
   cloudwatch_logs_name           = "/ecs/${local.service_name}"
   cloudwatch_logs_retention_days = 90
 
@@ -96,8 +87,7 @@ locals {
   allowed_security_group_ids = [module.public_loadbalancer.security_group_id]
 
   # ALB Pattern
-  host_names        = [var.atlantis_host_name]
+  host_names        = [var.host_name]
   target_group_arns = [module.alb_listener_target.target_group_arn]
-  listener_arn      = module.public_loadbalancer.listener_arns["443"]
   certificate_arn   = var.certificate_arn
 }
