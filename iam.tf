@@ -8,13 +8,12 @@ data "aws_iam_policy_document" "execution_role" {
   # Logging Permissions
   statement {
     actions = [
-      "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents",
       "logs:DescribeLogStreams"
     ]
     resources = [
-      "arn:aws:logs:*:*:*"
+      "arn:aws:logs:*:*:log-group:${local.cloudwatch_logs_name}:*"
     ]
   }
 }
@@ -42,8 +41,16 @@ data "aws_iam_policy_document" "ssm_access" {
       "ssmmessages:CreateControlChannel",
       "ssmmessages:CreateDataChannel",
       "ssmmessages:OpenControlChannel",
-      "ssmmessages:OpenDataChannel",
-      "logs:DescribeLogGroups",
+      "ssmmessages:OpenDataChannel"
+    ]
+    resources = ["*"]
+  }
+}
+
+data "aws_iam_policy_document" "logs_access" {
+  statement {
+    actions = [
+      "logs:DescribeLogGroups"
     ]
     resources = ["*"]
   }
@@ -53,7 +60,7 @@ data "aws_iam_policy_document" "ssm_access" {
       "logs:DescribeLogStreams",
       "logs:PutLogEvents"
     ]
-    resources = ["arn:aws:logs:*:*:log-group:/ecs/*:*"]
+    resources = ["arn:aws:logs:*:*:log-group:${local.cloudwatch_logs_name}:*"]
   }
 }
 
@@ -67,5 +74,8 @@ module "task_role" {
 
   policy_arns = local.policy_arns
 
-  inline_policies = local.iam_inline_policies
+  inline_policies = {
+    ssm-access  = data.aws_iam_policy_document.ssm_access.json
+    logs-access = data.aws_iam_policy_document.logs_access.json
+  }
 }

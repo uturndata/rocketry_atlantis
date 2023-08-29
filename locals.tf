@@ -1,6 +1,6 @@
 locals {
-  region       = data.aws_region.current.name
-  region_short = join("", regex("(\\w\\w)-(\\w)\\w+-(\\d)", local.region))
+  region = data.aws_region.current.name
+  # region_short = join("", regex("(\\w\\w)-(\\w)\\w+-(\\d)", local.region))
 
   subnet_ids = coalesce(var.subnet_ids, data.aws_subnets.default.ids)
   vpc_id     = coalesce(var.vpc_id, data.aws_vpc.default.id)
@@ -40,10 +40,10 @@ locals {
   }
 
   map_secrets = {
-    ATLANTIS_GH_TOKEN          = "${local.ssm_prefix}${var.secrets_names_suffixes.gh_token}"
-    ATLANTIS_GH_WEBHOOK_SECRET = "${local.ssm_prefix}${var.secrets_names_suffixes.gh_webhook_secret}"
-    ATLANTIS_GH_APP_KEY        = var.gh_auth_app_installation.enabled ? "${local.ssm_prefix}${var.gh_auth_app_installation.gh_app_key_ssm_suffix}" : null
-    ATLANTIS_WEB_PASSWORD      = var.enable_web_basic_auth ? "${local.ssm_prefix}${var.secrets_names_suffixes.web_password}" : null
+    ATLANTIS_GH_TOKEN          = "${local.ssm_prefix}/github/token"
+    ATLANTIS_GH_WEBHOOK_SECRET = "${local.ssm_prefix}/github/webhook_secret"
+    ATLANTIS_GH_APP_KEY        = var.gh_auth_app_installation.enabled ? "${local.ssm_prefix}/github/app_key" : null
+    ATLANTIS_WEB_PASSWORD      = var.enable_web_basic_auth ? "${local.ssm_prefix}/web/password" : null
   }
 
   # Environments and Secrets
@@ -67,10 +67,6 @@ locals {
   ordered_placement_strategy = []
 
   policy_arns = var.policy_arns
-
-  iam_inline_policies = { # A map of IAM inline policies to add on ECS service task role
-    ssm-access = data.aws_iam_policy_document.ssm_access.json
-  }
 
   # Launch Type Configuration
   use_fargate = var.use_fargate

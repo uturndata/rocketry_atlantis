@@ -58,4 +58,14 @@ module "container_definition" {
   user = "atlantis:atlantis"
 
   working_directory = "/home/atlantis"
+
+  log_configuration = {
+    logDriver = "awslogs"
+    options = {
+      awslogs-group         = local.cloudwatch_logs_name
+      awslogs-region        = local.region
+      awslogs-create-group  = "false"
+      awslogs-stream-prefix = "atlantis-stream"
+    }
+  }
 }

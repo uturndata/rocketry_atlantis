@@ -61,25 +61,18 @@ variable "gh_team_allowlist" {
 variable "gh_auth_app_installation" {
   description = "Configuration for authenticating Atlantis as a GitHub App. Ensure 'gh_app_id' and 'gh_app_key_ssm_suffix' are set if 'enabled' is true."
   type = object({
-    enabled               = bool
-    gh_app_id             = string
-    gh_app_key_ssm_suffix = string
+    enabled   = bool
+    gh_app_id = string
   })
 
   default = {
-    enabled               = false
-    gh_app_id             = null
-    gh_app_key_ssm_suffix = "/github/app_key"
+    enabled   = false
+    gh_app_id = null
   }
 
   validation {
     condition     = var.gh_auth_app_installation.enabled == false || (var.gh_auth_app_installation.enabled == true && var.gh_auth_app_installation.gh_app_id != null)
     error_message = "If gh_auth_app_installation.enabled is true, gh_app_id must be set."
-  }
-
-  validation {
-    condition     = var.gh_auth_app_installation.enabled == false || (var.gh_auth_app_installation.enabled == true && var.gh_auth_app_installation.gh_app_key_ssm_suffix != null)
-    error_message = "If gh_auth_app_installation.enabled is true, gh_app_key_ssm_suffix must be set."
   }
 }
 
@@ -123,20 +116,6 @@ variable "web_username" {
   description = "The default username for accessing the Atlantis web interface when basic authentication is enabled."
   type        = string
   default     = "atlantis"
-}
-
-variable "secrets_names_suffixes" {
-  description = "Suffixes for secret names stored in SSM."
-  type = object({
-    gh_token          = string
-    gh_webhook_secret = string
-    web_password      = string
-  })
-  default = {
-    gh_token          = "/github/token"
-    gh_webhook_secret = "/github/webhook_secret"
-    web_password      = "/web/password"
-  }
 }
 
 variable "repo_config_json" {

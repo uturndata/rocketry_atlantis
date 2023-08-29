@@ -25,9 +25,21 @@ The following requirements are needed by this module:
 
 The following Modules are called:
 
+### <a name="module_cloudwatch_log-group"></a> [cloudwatch\_log-group](#module\_cloudwatch\_log-group)
+
+Source: terraform-aws-modules/cloudwatch/aws//modules/log-group
+
+Version: 4.3.0
+
 ### <a name="module_public_loadbalancer"></a> [public\_loadbalancer](#module\_public\_loadbalancer)
 
 Source: git@github.com:uturndata/rocketry_aws_load_balancer.git
+
+Version: main
+
+### <a name="module_ecs_service"></a> [ecs\_service](#module\_ecs\_service)
+
+Source: git@github.com:uturndata/rocketry_aws_ecs_service.git
 
 Version: main
 
@@ -49,12 +61,6 @@ Source: git@github.com:uturndata/rocketry_aws_iam_role.git
 
 Version: main
 
-### <a name="module_ecs_service"></a> [ecs\_service](#module\_ecs\_service)
-
-Source: git@github.com:uturndata/rocketry_aws_ecs_service.git
-
-Version: main
-
 ### <a name="module_container_definition"></a> [container\_definition](#module\_container\_definition)
 
 Source: cloudposse/ecs-container-definition/aws
@@ -68,6 +74,7 @@ The following resources are used by this module:
 - [aws_ssm_parameter.web_password](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) (resource)
 - [random_password.web_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) (resource)
 - [aws_iam_policy_document.execution_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) (data source)
+- [aws_iam_policy_document.logs_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) (data source)
 - [aws_iam_policy_document.ssm_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) (data source)
 - [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) (data source)
 - [aws_subnets.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) (data source)
@@ -171,9 +178,8 @@ Type:
 
 ```hcl
 object({
-    enabled               = bool
-    gh_app_id             = string
-    gh_app_key_ssm_suffix = string
+    enabled   = bool
+    gh_app_id = string
   })
 ```
 
@@ -182,8 +188,7 @@ Default:
 ```json
 {
   "enabled": false,
-  "gh_app_id": null,
-  "gh_app_key_ssm_suffix": "/github/app_key"
+  "gh_app_id": null
 }
 ```
 
@@ -242,30 +247,6 @@ Description: The default username for accessing the Atlantis web interface when 
 Type: `string`
 
 Default: `"atlantis"`
-
-### <a name="input_secrets_names_suffixes"></a> [secrets\_names\_suffixes](#input\_secrets\_names\_suffixes)
-
-Description: Suffixes for secret names stored in SSM.
-
-Type:
-
-```hcl
-object({
-    gh_token          = string
-    gh_webhook_secret = string
-    web_password      = string
-  })
-```
-
-Default:
-
-```json
-{
-  "gh_token": "/github/token",
-  "gh_webhook_secret": "/github/webhook_secret",
-  "web_password": "/web/password"
-}
-```
 
 ### <a name="input_repo_config_json"></a> [repo\_config\_json](#input\_repo\_config\_json)
 
