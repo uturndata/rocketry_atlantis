@@ -8,7 +8,7 @@ repos:
 
     - id: terraform_docs
       args:
-        - '--args=document --sort=false --hide providers'
+        - '--args=document --sort=true --hide providers'
 
     - id: terraform_tflint
       exclude: ^examples/

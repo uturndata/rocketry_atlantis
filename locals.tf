@@ -10,7 +10,7 @@ locals {
   # Atlantis Configuration
   image_url = "${var.image_repo}:${var.image_tag}"
 
-  map_environment = {
+  base_map_environment = {
     # Required
     ATLANTIS_ATLANTIS_URL     = "https://${var.host_name}"
     ATLANTIS_REPO_ALLOWLIST   = join(",", var.repo_allowlist)
@@ -29,22 +29,32 @@ locals {
     ATLANTIS_WRITE_GIT_CREDS         = var.write_git_creds
 
     ATLANTIS_EMOJI_REACTION = var.emoji_reaction
-
-    # GitHub Config
-    ATLANTIS_GH_USER                         = var.gh_user
-    ATLANTIS_GH_APP_ID                       = var.gh_auth_app_installation.enabled ? var.gh_auth_app_installation.atlantis_gh_app_id : null
-    ATLANTIS_GH_APP_SLUG                     = var.gh_app_slug
-    ATLANTIS_GH_ALLOW_MERGEABLE_BYPASS_APPLY = var.gh_allow_mergeable_bypass_apply
-    ATLANTIS_GH_HOSTNAME                     = var.gh_hostname
-    ATLANTIS_GH_TEAM_ALLOWLIST               = var.gh_team_allowlist
   }
 
-  map_secrets = {
-    ATLANTIS_GH_TOKEN          = "${local.ssm_prefix}/github/token"
-    ATLANTIS_GH_WEBHOOK_SECRET = "${local.ssm_prefix}/github/webhook_secret"
-    ATLANTIS_GH_APP_KEY        = var.gh_auth_app_installation.enabled ? "${local.ssm_prefix}/github/app_key" : null
-    ATLANTIS_WEB_PASSWORD      = var.enable_web_basic_auth ? "${local.ssm_prefix}/web/password" : null
+  # Repo platform specific environment
+  map_environment = merge(local.base_map_environment,
+    var.repo_platform == "github" ? {
+      ATLANTIS_GH_USER                         = var.gh_user
+      ATLANTIS_GH_APP_ID                       = var.gh_auth_app_installation.enabled ? var.gh_auth_app_installation.atlantis_gh_app_id : null
+      ATLANTIS_GH_APP_SLUG                     = var.gh_app_slug
+      ATLANTIS_GH_ALLOW_MERGEABLE_BYPASS_APPLY = var.gh_allow_mergeable_bypass_apply
+      ATLANTIS_GH_HOSTNAME                     = var.gh_hostname
+      ATLANTIS_GH_TEAM_ALLOWLIST               = var.gh_team_allowlist
+    } : {}
+  )
+
+  base_map_secrets = {
+    ATLANTIS_WEB_PASSWORD = var.enable_web_basic_auth ? "${local.ssm_prefix}/web/password" : null
   }
+
+  # Repo platform specific secrets
+  map_secrets = merge(local.base_map_secrets,
+    var.repo_platform == "github" ? {
+      ATLANTIS_GH_TOKEN          = "${local.ssm_prefix}/github/token"
+      ATLANTIS_GH_WEBHOOK_SECRET = "${local.ssm_prefix}/github/webhook_secret"
+      ATLANTIS_GH_APP_KEY        = var.gh_auth_app_installation.enabled ? "${local.ssm_prefix}/github/app_key" : null
+    } : {}
+  )
 
   # Environments and Secrets
   ssm_prefix = coalesce(var.ssm_prefix, "/ecs/${var.cluster_name}/${var.service_name}")

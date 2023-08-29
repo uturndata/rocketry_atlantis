@@ -30,16 +30,26 @@ variable "certificate_arn" {
   description = "The ARN of the SSL/TLS certificate used for securing the Atlantis host name."
 }
 
-variable "gh_hostname" {
-  description = "The hostname of your GitHub Enterprise installation. Use 'github.com' for public GitHub."
+variable "repo_platform" {
+  description = "The repository platform being used by Atlantis"
   type        = string
-  default     = "github.com"
+
+  validation {
+    condition     = contains(["github"], var.repo_platform)
+    error_message = "The repo_platform value must be one of: github."
+  }
 }
 
 variable "repo_allowlist" {
   description = "List of repositories that Atlantis is allowed to interact with."
   type        = list(string)
   default     = ["github.com/*"]
+}
+
+variable "gh_hostname" {
+  description = "The hostname of your GitHub Enterprise installation. Use 'github.com' for public GitHub."
+  type        = string
+  default     = "github.com"
 }
 
 variable "gh_user" {
