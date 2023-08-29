@@ -33,15 +33,27 @@ The following requirements are needed by this module:
 
 The following Modules are called:
 
+### <a name="module_alb_listener_target"></a> [alb\_listener\_target](#module\_alb\_listener\_target)
+
+Source: ../aws_alb_listener_target
+
+Version:
+
 ### <a name="module_cloudwatch_log-group"></a> [cloudwatch\_log-group](#module\_cloudwatch\_log-group)
 
 Source: terraform-aws-modules/cloudwatch/aws//modules/log-group
 
 Version: 4.3.0
 
-### <a name="module_public_loadbalancer"></a> [public\_loadbalancer](#module\_public\_loadbalancer)
+### <a name="module_container_definition"></a> [container\_definition](#module\_container\_definition)
 
-Source: ../aws_load_balancer
+Source: cloudposse/ecs-container-definition/aws
+
+Version: 0.60.0
+
+### <a name="module_ecs_service"></a> [ecs\_service](#module\_ecs\_service)
+
+Source: ../aws_ecs_service
 
 Version:
 
@@ -51,9 +63,9 @@ Source: ../aws_iam_role
 
 Version:
 
-### <a name="module_alb_listener_target"></a> [alb\_listener\_target](#module\_alb\_listener\_target)
+### <a name="module_public_loadbalancer"></a> [public\_loadbalancer](#module\_public\_loadbalancer)
 
-Source: ../aws_alb_listener_target
+Source: ../aws_load_balancer
 
 Version:
 
@@ -62,18 +74,6 @@ Version:
 Source: ../aws_iam_role
 
 Version:
-
-### <a name="module_ecs_service"></a> [ecs\_service](#module\_ecs\_service)
-
-Source: ../aws_ecs_service
-
-Version:
-
-### <a name="module_container_definition"></a> [container\_definition](#module\_container\_definition)
-
-Source: cloudposse/ecs-container-definition/aws
-
-Version: 0.60.0
 
 ## Resources
 
@@ -92,9 +92,9 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_service_name"></a> [service\_name](#input\_service\_name)
+### <a name="input_certificate_arn"></a> [certificate\_arn](#input\_certificate\_arn)
 
-Description: Name of the ECS service to be created.
+Description: The ARN of the SSL/TLS certificate used for securing the Atlantis host name.
 
 Type: `string`
 
@@ -104,15 +104,9 @@ Description: Name of the ECS cluster where the service will be deployed.
 
 Type: `string`
 
-### <a name="input_host_name"></a> [host\_name](#input\_host\_name)
+### <a name="input_gh_app_slug"></a> [gh\_app\_slug](#input\_gh\_app\_slug)
 
-Description: The fully qualified domain name (FQDN) for the Atlantis service. For example, 'atlantis.dev.example.com'.
-
-Type: `string`
-
-### <a name="input_certificate_arn"></a> [certificate\_arn](#input\_certificate\_arn)
-
-Description: The ARN of the SSL/TLS certificate used for securing the Atlantis host name.
+Description: The slug of the GitHub App.
 
 Type: `string`
 
@@ -122,9 +116,21 @@ Description: The GitHub username associated with the Atlantis instance.
 
 Type: `string`
 
-### <a name="input_gh_app_slug"></a> [gh\_app\_slug](#input\_gh\_app\_slug)
+### <a name="input_host_name"></a> [host\_name](#input\_host\_name)
 
-Description: The slug of the GitHub App.
+Description: The fully qualified domain name (FQDN) for the Atlantis service. For example, 'atlantis.dev.example.com'.
+
+Type: `string`
+
+### <a name="input_repo_platform"></a> [repo\_platform](#input\_repo\_platform)
+
+Description: The repository platform being used by Atlantis
+
+Type: `string`
+
+### <a name="input_service_name"></a> [service\_name](#input\_service\_name)
+
+Description: Name of the ECS service to be created.
 
 Type: `string`
 
@@ -132,51 +138,94 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
+### <a name="input_automerge"></a> [automerge](#input\_automerge)
 
-Description: The ID of the VPC where the ECS cluster is located.
+Description: Automatically merge pull requests after plans have been successfully applied.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_autoplan_modules"></a> [autoplan\_modules](#input\_autoplan\_modules)
+
+Description: Automatically plan modules when changes are detected.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_checkout_strategy"></a> [checkout\_strategy](#input\_checkout\_strategy)
+
+Description: Strategy for checking out code in Atlantis. Default is to merge locally before planning.
 
 Type: `string`
 
-Default: `null`
+Default: `"merge"`
 
-### <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids)
+### <a name="input_cpu"></a> [cpu](#input\_cpu)
 
-Description: List of subnet IDs within the specified VPC where the ECS service will be deployed.
+Description: The amount of CPU units to allocate for the Atlantis ECS task.
 
-Type: `list(string)`
+Type: `number`
 
-Default: `null`
+Default: `512`
 
-### <a name="input_gh_hostname"></a> [gh\_hostname](#input\_gh\_hostname)
+### <a name="input_default_tags"></a> [default\_tags](#input\_default\_tags)
 
-Description: The hostname of your GitHub Enterprise installation. Use 'github.com' for public GitHub.
+Description: Default tags to assign to Atlantis resources.
 
-Type: `string`
-
-Default: `"github.com"`
-
-### <a name="input_repo_allowlist"></a> [repo\_allowlist](#input\_repo\_allowlist)
-
-Description: List of repositories that Atlantis is allowed to interact with.
-
-Type: `list(string)`
+Type: `map(string)`
 
 Default:
 
 ```json
-[
-  "github.com/*"
-]
+{
+  "Application": "Atlantis",
+  "Environment": "development",
+  "ManagedBy": "Terraform",
+  "Team": "Uturn"
+}
 ```
 
-### <a name="input_gh_team_allowlist"></a> [gh\_team\_allowlist](#input\_gh\_team\_allowlist)
+### <a name="input_default_terraform_version"></a> [default\_terraform\_version](#input\_default\_terraform\_version)
 
-Description: A comma-separated list of teams with their associated permissions on Atlantis commands. For example, 'myteam:plan, secteam:apply, DevOps Team:apply, DevOps Team:import'.
+Description: The default version of Terraform to use with Atlantis.
 
 Type: `string`
 
-Default: `null`
+Default: `"v1.5.5"`
+
+### <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count)
+
+Description: The desired number of Atlantis tasks to run.
+
+Type: `number`
+
+Default: `1`
+
+### <a name="input_emoji_reaction"></a> [emoji\_reaction](#input\_emoji\_reaction)
+
+Description: Emoji used by Atlantis to react to comments in pull requests.
+
+Type: `string`
+
+Default: `"trident"`
+
+### <a name="input_enable_web_basic_auth"></a> [enable\_web\_basic\_auth](#input\_enable\_web\_basic\_auth)
+
+Description: Enable basic authentication for the Atlantis web interface.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_gh_allow_mergeable_bypass_apply"></a> [gh\_allow\_mergeable\_bypass\_apply](#input\_gh\_allow\_mergeable\_bypass\_apply)
+
+Description: Allow pull requests that are mergeable to bypass the apply requirement.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_gh_auth_app_installation"></a> [gh\_auth\_app\_installation](#input\_gh\_auth\_app\_installation)
 
@@ -200,21 +249,29 @@ Default:
 }
 ```
 
-### <a name="input_gh_allow_mergeable_bypass_apply"></a> [gh\_allow\_mergeable\_bypass\_apply](#input\_gh\_allow\_mergeable\_bypass\_apply)
+### <a name="input_gh_hostname"></a> [gh\_hostname](#input\_gh\_hostname)
 
-Description: Allow pull requests that are mergeable to bypass the apply requirement.
+Description: The hostname of your GitHub Enterprise installation. Use 'github.com' for public GitHub.
 
-Type: `bool`
+Type: `string`
 
-Default: `false`
+Default: `"github.com"`
 
-### <a name="input_ssm_prefix"></a> [ssm\_prefix](#input\_ssm\_prefix)
+### <a name="input_gh_team_allowlist"></a> [gh\_team\_allowlist](#input\_gh\_team\_allowlist)
 
-Description: The prefix for the SSM parameter. Defaults to '/ecs/{var.cluster\_name}/{var.service\_name}'.
+Description: A comma-separated list of teams with their associated permissions on Atlantis commands. For example, 'myteam:plan, secteam:apply, DevOps Team:apply, DevOps Team:import'.
 
 Type: `string`
 
 Default: `null`
+
+### <a name="input_hide_prev_plan_comments"></a> [hide\_prev\_plan\_comments](#input\_hide\_prev\_plan\_comments)
+
+Description: Hide previous plan comments in pull requests to reduce noise.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_image_repo"></a> [image\_repo](#input\_image\_repo)
 
@@ -232,102 +289,6 @@ Type: `string`
 
 Default: `"v0.25.0"`
 
-### <a name="input_default_terraform_version"></a> [default\_terraform\_version](#input\_default\_terraform\_version)
-
-Description: The default version of Terraform to use with Atlantis.
-
-Type: `string`
-
-Default: `"v1.5.5"`
-
-### <a name="input_enable_web_basic_auth"></a> [enable\_web\_basic\_auth](#input\_enable\_web\_basic\_auth)
-
-Description: Enable basic authentication for the Atlantis web interface.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_web_username"></a> [web\_username](#input\_web\_username)
-
-Description: The default username for accessing the Atlantis web interface when basic authentication is enabled.
-
-Type: `string`
-
-Default: `"atlantis"`
-
-### <a name="input_repo_config_json"></a> [repo\_config\_json](#input\_repo\_config\_json)
-
-Description: JSON configuration for repository settings in Atlantis.
-
-Type: `string`
-
-Default: `"{\n  \"repos\": [\n    {\n      \"id\": \"/.*/\",\n      \"apply_requirements\": [\"mergeable\"]\n    }\n  ]\n}\n"`
-
-### <a name="input_checkout_strategy"></a> [checkout\_strategy](#input\_checkout\_strategy)
-
-Description: Strategy for checking out code in Atlantis. Default is to merge locally before planning.
-
-Type: `string`
-
-Default: `"merge"`
-
-### <a name="input_automerge"></a> [automerge](#input\_automerge)
-
-Description: Automatically merge pull requests after plans have been successfully applied.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_autoplan_modules"></a> [autoplan\_modules](#input\_autoplan\_modules)
-
-Description: Automatically plan modules when changes are detected.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_hide_prev_plan_comments"></a> [hide\_prev\_plan\_comments](#input\_hide\_prev\_plan\_comments)
-
-Description: Hide previous plan comments in pull requests to reduce noise.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_write_git_creds"></a> [write\_git\_creds](#input\_write\_git\_creds)
-
-Description: Write Git credentials to allow Atlantis access to private modules.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_emoji_reaction"></a> [emoji\_reaction](#input\_emoji\_reaction)
-
-Description: Emoji used by Atlantis to react to comments in pull requests.
-
-Type: `string`
-
-Default: `"trident"`
-
-### <a name="input_use_fargate"></a> [use\_fargate](#input\_use\_fargate)
-
-Description: Use AWS Fargate for running the Atlantis ECS task.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_cpu"></a> [cpu](#input\_cpu)
-
-Description: The amount of CPU units to allocate for the Atlantis ECS task.
-
-Type: `number`
-
-Default: `512`
-
 ### <a name="input_memory"></a> [memory](#input\_memory)
 
 Description: The amount of memory (in MiB) to allocate for the Atlantis ECS task.
@@ -335,14 +296,6 @@ Description: The amount of memory (in MiB) to allocate for the Atlantis ECS task
 Type: `number`
 
 Default: `1024`
-
-### <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count)
-
-Description: The desired number of Atlantis tasks to run.
-
-Type: `number`
-
-Default: `1`
 
 ### <a name="input_policy_arns"></a> [policy\_arns](#input\_policy\_arns)
 
@@ -358,22 +311,75 @@ Default:
 }
 ```
 
-### <a name="input_default_tags"></a> [default\_tags](#input\_default\_tags)
+### <a name="input_repo_allowlist"></a> [repo\_allowlist](#input\_repo\_allowlist)
 
-Description: Default tags to assign to Atlantis resources.
+Description: List of repositories that Atlantis is allowed to interact with.
 
-Type: `map(string)`
+Type: `list(string)`
 
 Default:
 
 ```json
-{
-  "Application": "Atlantis",
-  "Environment": "development",
-  "ManagedBy": "Terraform",
-  "Team": "Uturn"
-}
+[
+  "github.com/*"
+]
 ```
+
+### <a name="input_repo_config_json"></a> [repo\_config\_json](#input\_repo\_config\_json)
+
+Description: JSON configuration for repository settings in Atlantis.
+
+Type: `string`
+
+Default: `"{\n  \"repos\": [\n    {\n      \"id\": \"/.*/\",\n      \"apply_requirements\": [\"mergeable\"]\n    }\n  ]\n}\n"`
+
+### <a name="input_ssm_prefix"></a> [ssm\_prefix](#input\_ssm\_prefix)
+
+Description: The prefix for the SSM parameter. Defaults to '/ecs/{var.cluster\_name}/{var.service\_name}'.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids)
+
+Description: List of subnet IDs within the specified VPC where the ECS service will be deployed.
+
+Type: `list(string)`
+
+Default: `null`
+
+### <a name="input_use_fargate"></a> [use\_fargate](#input\_use\_fargate)
+
+Description: Use AWS Fargate for running the Atlantis ECS task.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
+
+Description: The ID of the VPC where the ECS cluster is located.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_web_username"></a> [web\_username](#input\_web\_username)
+
+Description: The default username for accessing the Atlantis web interface when basic authentication is enabled.
+
+Type: `string`
+
+Default: `"atlantis"`
+
+### <a name="input_write_git_creds"></a> [write\_git\_creds](#input\_write\_git\_creds)
+
+Description: Write Git credentials to allow Atlantis access to private modules.
+
+Type: `bool`
+
+Default: `true`
 
 ## Outputs
 
