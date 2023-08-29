@@ -31,7 +31,7 @@ variable "certificate_arn" {
 }
 
 variable "repo_platform" {
-  description = "The repository platform being used by Atlantis"
+  description = "The repository platform being used by Atlantis. So far, only `github` is supported by this module."
   type        = string
 
   validation {

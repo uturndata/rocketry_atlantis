@@ -1,5 +1,5 @@
 [![Maintained by Uturn Data Solutions](https://img.shields.io/badge/maintained%20by-Uturn-%235849a6.svg)](https://uturndata.com/?ref=repo_rocketry)
-# Rocketry Framework - Atlantis Module
+# Rocketry Framework - Atlantis Module 🔱
 
 This folder contains a [Terraform](https://www.terraform.io/) module to deploy Atlantis in [AWS](https://aws.amazon.com/).
 
@@ -124,7 +124,7 @@ Type: `string`
 
 ### <a name="input_repo_platform"></a> [repo\_platform](#input\_repo\_platform)
 
-Description: The repository platform being used by Atlantis
+Description: The repository platform being used by Atlantis. So far, only `github` is supported by this module.
 
 Type: `string`
 
