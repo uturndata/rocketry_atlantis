@@ -9,6 +9,14 @@ This module is designed to deploy Atlantis on AWS ECS. It handles the setup of t
 
 Examples of usage of this module can be found in the `examples` folder.
 
+### SSM Parameters
+
+Some secrets are going to be loaded from SSM Parameter Store. Each parameter must have a prefix equal to the value of the `ssm_prefix` variable, which by default will be `/ecs/{cluster_name}/{service_name}`.
+  - `/ecs/{cluster_name}/{service_name}/github/token`: The token to communicate with GitHub API.
+  - `/ecs/{cluster_name}/{service_name}/github/webhook_secret`: Secret used to validate GitHub webhooks (see https://developer.github.com/webhooks/securing/).
+  - `/ecs/{cluster_name}/{service_name}/github/app_key`: The PEM encoded private key for the GitHub App. Needs to be set if `gh_auth_app_installation.enabled == true`.
+  - `/ecs/{cluster_name}/{service_name}/web/password`: Password used for Basic Authentication on the Atlantis web service. Will be automatically created by this module.
+
 <!-- Everything between the PRE-COMMIT-TERRAFORM DOCS HOOK tags is replaced whenever the pre-commit hook runs, edit custom docs outside the tags -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
@@ -33,33 +41,33 @@ Version: 4.3.0
 
 ### <a name="module_public_loadbalancer"></a> [public\_loadbalancer](#module\_public\_loadbalancer)
 
-Source: git@github.com:uturndata/rocketry_aws_load_balancer.git
+Source: ../aws_load_balancer
 
-Version: main
-
-### <a name="module_ecs_service"></a> [ecs\_service](#module\_ecs\_service)
-
-Source: git@github.com:uturndata/rocketry_aws_ecs_service.git
-
-Version: main
+Version:
 
 ### <a name="module_execution_role"></a> [execution\_role](#module\_execution\_role)
 
-Source: git@github.com:uturndata/rocketry_aws_iam_role.git
+Source: ../aws_iam_role
 
-Version: main
+Version:
 
 ### <a name="module_alb_listener_target"></a> [alb\_listener\_target](#module\_alb\_listener\_target)
 
-Source: git@github.com:uturndata/rocketry_aws_alb_listener_target.git
+Source: ../aws_alb_listener_target
 
-Version: main
+Version:
 
 ### <a name="module_task_role"></a> [task\_role](#module\_task\_role)
 
-Source: git@github.com:uturndata/rocketry_aws_iam_role.git
+Source: ../aws_iam_role
 
-Version: main
+Version:
+
+### <a name="module_ecs_service"></a> [ecs\_service](#module\_ecs\_service)
+
+Source: ../aws_ecs_service
+
+Version:
 
 ### <a name="module_container_definition"></a> [container\_definition](#module\_container\_definition)
 

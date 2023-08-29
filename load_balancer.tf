@@ -1,5 +1,5 @@
 module "public_loadbalancer" {
-  source = "git@github.com:uturndata/rocketry_aws_load_balancer.git?ref=main"
+  source = "../aws_load_balancer"
 
   name        = var.service_name
   type        = "application"
@@ -20,7 +20,7 @@ module "public_loadbalancer" {
 }
 
 module "alb_listener_target" {
-  source = "git@github.com:uturndata/rocketry_aws_alb_listener_target.git?ref=main"
+  source = "../aws_alb_listener_target"
 
   listener_arn = module.public_loadbalancer.listener_arns["443"]
 

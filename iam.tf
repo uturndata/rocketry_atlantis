@@ -19,7 +19,7 @@ data "aws_iam_policy_document" "execution_role" {
 }
 
 module "execution_role" {
-  source = "git@github.com:uturndata/rocketry_aws_iam_role.git?ref=main"
+  source = "../aws_iam_role"
 
   name                 = "${var.service_name}-TaskExecutionRole"
   path                 = "/ecs/"
@@ -65,7 +65,7 @@ data "aws_iam_policy_document" "logs_access" {
 }
 
 module "task_role" {
-  source = "git@github.com:uturndata/rocketry_aws_iam_role.git?ref=main"
+  source = "../aws_iam_role"
 
   name                 = "${var.service_name}-TaskRole"
   path                 = "/ecs/"

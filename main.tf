@@ -1,5 +1,5 @@
 module "ecs_service" {
-  source = "git@github.com:uturndata/rocketry_aws_ecs_service.git?ref=main"
+  source = "../aws_ecs_service"
 
   name                       = local.service_name
   cluster                    = local.cluster_name
