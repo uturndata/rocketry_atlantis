@@ -211,6 +211,12 @@ variable "policy_arns" {
   }
 }
 
+variable "cloudwatch_logs_retention_days" {
+  description = "For how many days the logs will be kept in CloudWatch."
+  type        = number
+  default     = 90
+}
+
 variable "default_tags" {
   description = "Default tags to assign to Atlantis resources."
   type        = map(string)

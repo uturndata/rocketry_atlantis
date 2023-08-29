@@ -84,9 +84,9 @@ locals {
   launch_type             = local.use_fargate && length(local.capacity_provider_strategy) == 0 ? "FARGATE" : null
   requiresCompatibilities = local.use_fargate ? ["FARGATE"] : ["EC2"]
 
-  # CloudWatch Logs (TODO)
+  # CloudWatch Logs
   cloudwatch_logs_name           = "/ecs/${local.service_name}"
-  cloudwatch_logs_retention_days = 90
+  cloudwatch_logs_retention_days = var.cloudwatch_logs_retention_days
 
   # Security Group Configuration
   allowed_cidrs              = []

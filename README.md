@@ -162,6 +162,14 @@ Type: `string`
 
 Default: `"merge"`
 
+### <a name="input_cloudwatch_logs_retention_days"></a> [cloudwatch\_logs\_retention\_days](#input\_cloudwatch\_logs\_retention\_days)
+
+Description: For how many days the logs will be kept in CloudWatch.
+
+Type: `number`
+
+Default: `90`
+
 ### <a name="input_cpu"></a> [cpu](#input\_cpu)
 
 Description: The amount of CPU units to allocate for the Atlantis ECS task.
@@ -383,7 +391,71 @@ Default: `true`
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_cloudwatch_log_group_arn"></a> [cloudwatch\_log\_group\_arn](#output\_cloudwatch\_log\_group\_arn)
+
+Description: The Amazon Resource Name (ARN) of the CloudWatch log group.
+
+### <a name="output_cloudwatch_log_group_name"></a> [cloudwatch\_log\_group\_name](#output\_cloudwatch\_log\_group\_name)
+
+Description: The name of the CloudWatch log group.
+
+### <a name="output_load_balancer_arn"></a> [load\_balancer\_arn](#output\_load\_balancer\_arn)
+
+Description: The Amazon Resource Name (ARN) of the load balancer.
+
+### <a name="output_load_balancer_dns_name"></a> [load\_balancer\_dns\_name](#output\_load\_balancer\_dns\_name)
+
+Description: The DNS name of the load balancer.
+
+### <a name="output_load_balancer_listener_arns"></a> [load\_balancer\_listener\_arns](#output\_load\_balancer\_listener\_arns)
+
+Description: The ARNs of the listeners for the load balancer.
+
+### <a name="output_load_balancer_listener_target_group_arn"></a> [load\_balancer\_listener\_target\_group\_arn](#output\_load\_balancer\_listener\_target\_group\_arn)
+
+Description: The ARN of the target group associated with the load balancer listener.
+
+### <a name="output_load_balancer_listener_target_group_name"></a> [load\_balancer\_listener\_target\_group\_name](#output\_load\_balancer\_listener\_target\_group\_name)
+
+Description: The name of the target group associated with the load balancer listener.
+
+### <a name="output_load_balancer_security_group_id"></a> [load\_balancer\_security\_group\_id](#output\_load\_balancer\_security\_group\_id)
+
+Description: The security group ID associated with the load balancer.
+
+### <a name="output_service_id"></a> [service\_id](#output\_service\_id)
+
+Description: The ID of the ECS service.
+
+### <a name="output_service_name"></a> [service\_name](#output\_service\_name)
+
+Description: The name of the ECS service.
+
+### <a name="output_service_security_group_id"></a> [service\_security\_group\_id](#output\_service\_security\_group\_id)
+
+Description: The security group ID associated with the ECS service.
+
+### <a name="output_subnet_ids"></a> [subnet\_ids](#output\_subnet\_ids)
+
+Description: The IDs of the subnets within the VPC.
+
+### <a name="output_url"></a> [url](#output\_url)
+
+Description: The URL endpoint for Atlantis.
+
+### <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id)
+
+Description: The ID of the Virtual Private Cloud (VPC).
+
+### <a name="output_web_password"></a> [web\_password](#output\_web\_password)
+
+Description: The password for Atlantis web access. This is sensitive and should be kept secure.
+
+### <a name="output_web_username"></a> [web\_username](#output\_web\_username)
+
+Description: The username for Atlantis web access.
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
 ## License and disclaimer
